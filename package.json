@@ -1,0 +1,12 @@
+{
+  "name": "@positano777/pump-launch-sniper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test",
+    "replay": "node src/cli.mjs replay examples/launches.synthetic.jsonl"
+  }
+}
