@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+node_modules/
+*.key
+*.pem
+*.jsonl.local
+reports/
