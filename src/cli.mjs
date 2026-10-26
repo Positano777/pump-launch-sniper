@@ -1,11 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import { replay } from './replay.mjs';
+import { paperReplay } from './paper.mjs';
+import { latencyReport } from './latency.mjs';
 import { analyzeWithModel } from './models.mjs';
 
 async function main(args) {
   const [command, path, provider] = args;
-  if (!['replay', 'analyze'].includes(command) || !path || (command === 'analyze' && !['grok', 'muse'].includes(provider))) {
-    throw new Error('Usage: node src/cli.mjs replay FILE.jsonl | analyze FILE.jsonl grok|muse');
+  if (!['replay', 'paper', 'latency', 'analyze'].includes(command) || !path || (command === 'analyze' && !['grok', 'muse'].includes(provider))) {
+    throw new Error('Usage: node src/cli.mjs replay|paper|latency FILE.jsonl | analyze FILE.jsonl grok|muse');
   }
   const data = await readFile(path, 'utf8');
   if (data.length > 10_000_000) throw new Error('Input too large');
@@ -13,6 +15,8 @@ async function main(args) {
     try { return JSON.parse(line); } catch { throw new Error(`Invalid JSON at line ${i + 1}`); }
   });
   if (command === 'replay') return replay(rows);
+  if (command === 'paper') return paperReplay(rows);
+  if (command === 'latency') return latencyReport(rows);
   if (rows.length !== 1) throw new Error('Analyze accepts exactly one record');
   return analyzeWithModel(provider, rows[0].signal);
 }

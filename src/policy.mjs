@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
-export const POLICY_VERSION = '0.1.0';
+export const POLICY_VERSION = '0.2.0';
+const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 export const DEFAULT_POLICY = Object.freeze({
   maxAgeMs: 15_000,
   maxCreatorPriorLaunches: 20,
@@ -19,10 +20,39 @@ function finite(value, name, min, max) {
   return value;
 }
 
+function publicKey(value) {
+  if (typeof value !== 'string' || value.length < 32 || value.length > 44) return false;
+  let n = 0n;
+  for (const char of value) {
+    const digit = BASE58.indexOf(char);
+    if (digit < 0) return false;
+    n = n * 58n + BigInt(digit);
+  }
+  let size = 0;
+  while (n > 0n) { size++; n >>= 8n; }
+  return value.match(/^1*/)[0].length + size === 32;
+}
+
+export function validatePolicy(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new TypeError('policy must be an object');
+  const allowed = Object.keys(DEFAULT_POLICY);
+  for (const key of Object.keys(raw)) if (!allowed.includes(key)) throw new TypeError(`unknown policy field: ${key}`);
+  return {
+    maxAgeMs: finite(raw.maxAgeMs, 'maxAgeMs', 0, 86_400_000),
+    maxCreatorPriorLaunches: finite(raw.maxCreatorPriorLaunches, 'maxCreatorPriorLaunches', 0, 1_000_000),
+    maxCreatorPriorRugs: finite(raw.maxCreatorPriorRugs, 'maxCreatorPriorRugs', 0, 1_000_000),
+    maxTopTenPct: finite(raw.maxTopTenPct, 'maxTopTenPct', 0, 100),
+    maxBundlePct: finite(raw.maxBundlePct, 'maxBundlePct', 0, 100),
+    minLiquiditySol: finite(raw.minLiquiditySol, 'minLiquiditySol', 0, 1_000_000_000),
+    maxSpendSol: finite(raw.maxSpendSol, 'maxSpendSol', Number.MIN_VALUE, 100),
+    maxSlippageBps: finite(raw.maxSlippageBps, 'maxSlippageBps', 0, 10_000),
+  };
+}
+
 export function validateSignal(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new TypeError('signal must be an object');
   const mint = raw.mint;
-  if (typeof mint !== 'string' || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(mint)) {
+  if (!publicKey(mint)) {
     throw new TypeError('mint must be a Solana base58 public key');
   }
   const signal = {
@@ -47,6 +77,7 @@ export function validateSignal(raw) {
 
 export function decide(rawSignal, policy = DEFAULT_POLICY) {
   const signal = validateSignal(rawSignal);
+  policy = validatePolicy(policy);
   const reasons = [];
   let verdict = 'BUY';
   const abstain = (reason) => { reasons.push(reason); verdict = 'ABSTAIN'; };

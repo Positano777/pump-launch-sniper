@@ -1,8 +1,18 @@
 # Pump Launch Sniper
 
-An independent, MIT-licensed research prototype by [Positano777](https://github.com/Positano777). It replays Pump launch signals, makes deterministic `BUY` / `SKIP` / `ABSTAIN` decisions, and reports error and local decision-time metrics. Optional Grok and Muse adapters produce **research commentary only**. This release does not connect to Photon, monitor live launches, sign, or submit transactions.
+**Can a launch bot be fast, explain every decision, and publish the evidence behind its performance?** This is our open-source attempt to answer that question.
 
-**Status: prototype. The thresholds are illustrative, not an investment strategy.** There is no measured profitability, landing probability, or Photon-comparable latency. The included dataset is synthetic. Do not fund the example addresses.
+An independent MIT-licensed project by [Positano777](https://github.com/Positano777), built alongside [Memecoin LaunchOps](https://github.com/Positano777/memecoin-launchops). The current release is a **replay and paper-trading prototype**, not a live trading bot. It classifies supplied Pump launch signals as `BUY`, `SKIP`, or `ABSTAIN`, records the policy version and evidence fingerprint, calculates hypothetical 30-minute results after supplied costs, and reports stage-by-stage timing when timestamps exist.
+
+| Available now | Still required for live trading |
+|---|---|
+| Deterministic, inspectable policy and reason codes | Authorized live Solana launch feed and point-in-time evidence collector |
+| Replay accuracy and abstention metrics | Large real chronological cohort with independently checked labels |
+| Paper portfolio with fees, slippage, cash and position cap | Verified price/fee data, actual fills and realistic execution study |
+| Optional Grok/Muse research explanations | Separately reviewed signer, transaction sender, loss limits and kill switch |
+| Latency report for supplied event timestamps | Comparable Photon observations; documented Photon API if integration is offered |
+
+**No real trading, profit, accuracy, or Photon-speed claim is made.** The included three-case dataset and its prices are invented. The thresholds are illustrative. Do not fund the example addresses.
 
 ## Run offline
 
@@ -11,10 +21,11 @@ Requires Node 22 or later; no package installation or post-install scripts.
 ```sh
 npm test
 npm run replay
-node src/cli.mjs replay examples/launches.synthetic.jsonl
+npm run paper
+npm run latency
 ```
 
-The replay input is newline-delimited JSON. Each row has a `signal` containing only information available at decision time. An optional `outcome.favorableAt30m` boolean is read only by the reporter. The program does not infer that label, verify market prices, or calculate PnL. The report excludes abstentions from precision/recall denominators and identifies duplicates by mint.
+Replay reads newline-delimited JSON. Each row has a `signal` with only point-in-time information. `outcome.favorableAt30m` is read only by the reporter. `outcome.paperQuote` supplies a hypothetical entry, 30-minute exit, fees, slippage and fixed costs for paper accounting. Those numbers are **not fetched or verified** by this software. Paper output states quote coverage; a partially covered cohort cannot support a strategy-wide PnL claim. [Input format and metric definitions](docs/DATA.md) explain every field.
 
 ## Optional Grok or Muse analysis
 
@@ -25,7 +36,7 @@ node src/cli.mjs analyze one-launch.jsonl grok
 node src/cli.mjs analyze one-launch.jsonl muse
 ```
 
-The adapter sends the public signal to the chosen provider. Never include secrets or private wallet data in a signal. Model text cannot change a policy result. This is a hosted API integration, not a fork of either model. Muse Spark Open weights are available separately under Meta's Muse Model License; they are too large to assume local hosting for this prototype.
+The adapter sends the public signal to the chosen provider. Never include secrets or private wallet data in a signal. Model text cannot change a policy result. These are hosted API integrations, not forks of either model. Muse Spark Open weights are separately available under Meta's Muse Model License; local hosting is outside this project's budget.
 
 ## Toward an independently useful sniper
 
@@ -33,14 +44,18 @@ The adapter sends the public signal to the chosen provider. Never include secret
 flowchart LR
   F[Authorized Solana event feed] --> E[Validated launch evidence]
   E --> C[Versioned deterministic policy]
-  C --> P[Replay and paper trader: current release]
+  C --> P[Replay, paper portfolio, latency report]
   E --> A[Grok or Muse research: optional]
   A --> R[Feature proposals for offline testing]
   C -. future, separately reviewed .-> X[Bounded live executor using official Pump SDK]
   X -. optional if documented and authorized .-> H[Photon adapter]
 ```
 
-Next requirements before live execution: a licensed launch event feed, point-in-time creator and bundle evidence, a large chronological labeled cohort, realistic fill/slippage simulation, fee-aware PnL, spend and loss caps, a dedicated low-balance wallet, a kill switch, and review of the current Pump SDK instructions. Benchmark event availability, decision, submission, and confirmation separately. Photon describes its submission method as proprietary; no documented Photon trading API has been verified. Do not automate its website or undocumented endpoints.
+Photon describes its submission method as proprietary; no documented Photon trading API has been verified. The [release plan](docs/LAUNCH.md) shows what must be proved before a live executor is considered. Do not automate Photon's website or undocumented endpoints.
+
+## Help build it
+
+The most useful contributions are **timestamped, public, reproducible launch evidence**; independent labels for successes and failures; verified fee/quote parsers; and reproducible benchmarks. See [contribution guide](CONTRIBUTING.md), [input format](docs/DATA.md), and [release plan](docs/LAUNCH.md). Please open an issue with a mint, slot, evidence source, observation time and expected result. Do not post wallet keys or private RPC credentials.
 
 ## Sources
 

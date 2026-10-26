@@ -1,6 +1,8 @@
 import { performance } from 'node:perf_hooks';
 import { decide } from './policy.mjs';
 
+export const LABEL_DEFINITION = 'net-positive-after-costs-at-30m-v1';
+
 function percentile(values, p) {
   if (!values.length) return null;
   const sorted = [...values].sort((a, b) => a - b);
@@ -21,7 +23,11 @@ export function replay(rows) {
     localDecisionMs.push(performance.now() - start);
     counts[decision.verdict]++;
     const label = row.outcome?.favorableAt30m;
+    if (label !== undefined && typeof label !== 'boolean') throw new TypeError('favorableAt30m must be boolean when present');
     if (typeof label === 'boolean') {
+      if (row.outcome?.labelDefinition !== LABEL_DEFINITION) {
+        throw new TypeError(`labeled rows require labelDefinition=${LABEL_DEFINITION}`);
+      }
       counts.labeled++;
       if (decision.verdict === 'BUY' && label) counts.truePositive++;
       if (decision.verdict === 'BUY' && !label) counts.falsePositive++;
