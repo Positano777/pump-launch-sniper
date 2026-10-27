@@ -7,6 +7,9 @@ import { paperReplay } from '../src/paper.mjs';
 import { latencyReport } from '../src/latency.mjs';
 import { attachLaunchEvidence } from '../src/evidence.mjs';
 import { simulatePath, simulateScenarios, DEFAULT_SCENARIOS } from '../src/path-sim.mjs';
+import { decodePumpCreation, PUMP_PROGRAM } from '../src/pump-tx.mjs';
+import { collectPumpCreations, validateWsUrl } from '../src/collector.mjs';
+import { ReadRpc } from '../src/rpc-client.mjs';
 import { analyzeWithModel } from '../src/models.mjs';
 
 const rows = (await readFile(new URL('../examples/launches.synthetic.jsonl', import.meta.url), 'utf8'))
@@ -177,4 +180,68 @@ test('path simulation rejects reversed ticks and future evidence cannot change p
   gap.outcome.pricePath = [{ atMs: 11000, priceSol: 0.000001 }, { atMs: 2_000_000, priceSol: 0.000001 }];
   assert.equal(simulatePath(gap).status, 'EXIT_QUOTE_GAP');
   assert.equal(simulatePath(gap).netPnlSol, null);
+});
+
+test('official Pump discriminator yields a read-only creation candidate only', () => {
+  const sig = 'synthetic-signature';
+  const tx = { slot: 100, blockTime: 10, meta: { err: null }, transaction: {
+    signatures: [sig], message: { instructions: [{ programId: PUMP_PROGRAM,
+      accounts: [rows[0].signal.mint, 'a', 'b', 'c', 'd', rows[1].signal.mint],
+      data: '3jQUKbhDQk8du' }] } } };
+  const candidate = decodePumpCreation(sig, tx, 11000);
+  assert.equal(candidate.mint, rows[0].signal.mint);
+  assert.equal(candidate.creationUser, rows[1].signal.mint);
+  assert.equal(candidate.instruction, 'create_v2');
+  assert.equal(candidate.tradingSignal, false);
+  assert.equal(decodePumpCreation(sig, { ...tx, meta: { err: 'failed' } }, 11000), null);
+  assert.equal(decodePumpCreation('wrong-signature', tx, 11000), null);
+});
+
+test('read-only collector verifies mainnet and decodes a mocked official notification', async () => {
+  const signature = 'synthetic-signature';
+  const tx = { slot: 100, blockTime: 10, meta: { err: null }, transaction: {
+    signatures: [signature], message: { instructions: [{ programId: PUMP_PROGRAM,
+      accounts: [rows[0].signal.mint, 'a', 'b', 'c', 'd', rows[1].signal.mint], data: '3jQUKbhDQk8du' }] } } };
+  let subscribed;
+  class FakeSocket extends EventTarget {
+    constructor() { super(); queueMicrotask(() => this.dispatchEvent(new Event('open'))); }
+    send(data) {
+      subscribed = JSON.parse(data);
+      queueMicrotask(() => {
+        const event = new Event('message');
+        Object.defineProperty(event, 'data', { value: JSON.stringify({ method: 'logsNotification',
+          params: { result: { context: { slot: 100 },
+            value: { err: null, signature, logs: ['Program log: Instruction: CreateV2'] } } } }) });
+        this.dispatchEvent(event);
+      });
+    }
+    close() { this.dispatchEvent(new Event('close')); }
+  }
+  const found = [];
+  const stats = await collectPumpCreations({ rpc: { verifyMainnet: async () => {}, call: async () => tx },
+    wsUrl: 'wss://example.invalid', socketFactory: () => new FakeSocket(),
+    now: () => 11000, maxCandidates: 1, maxDurationMs: 1000, onCandidate: (candidate) => found.push(candidate) });
+  assert.equal(subscribed.method, 'logsSubscribe');
+  assert.deepEqual(subscribed.params[0].mentions, [PUMP_PROGRAM]);
+  assert.equal(found[0].mint, rows[0].signal.mint);
+  assert.equal(stats.candidates, 1);
+  assert.equal(stats.status, 'candidate_limit');
+  assert.throws(() => validateWsUrl('ws://example.com'), /WSS/);
+  await assert.rejects(new ReadRpc('https://example.invalid').call('sendTransaction'), /read-only/);
+});
+
+test('read RPC accepts only a valid mainnet genesis response', async () => {
+  const methods = [];
+  const fetcher = async (_url, options) => {
+    const request = JSON.parse(options.body);
+    methods.push(request.method);
+    return new Response(JSON.stringify({ jsonrpc: '2.0', id: 1,
+      result: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d' }),
+    { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  await new ReadRpc('https://example.invalid', fetcher).verifyMainnet();
+  assert.deepEqual(methods, ['getGenesisHash']);
+  const wrong = new ReadRpc('https://example.invalid', async () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 1,
+    result: 'wrong-chain' }), { status: 200 }));
+  await assert.rejects(wrong.verifyMainnet(), /not Solana mainnet/);
 });

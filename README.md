@@ -2,11 +2,12 @@
 
 **Can a launch bot be fast, explain every decision, and publish the evidence behind its performance?** This is our open-source attempt to answer that question.
 
-An independent MIT-licensed project by [Positano777](https://github.com/Positano777), built alongside [Memecoin LaunchOps](https://github.com/Positano777/memecoin-launchops). The current release is a **replay and simulation prototype**, not a live trading bot. It classifies supplied Pump launch signals as `BUY`, `SKIP`, or `ABSTAIN`, records the policy version and evidence fingerprint, calculates hypothetical results after supplied costs, and reports stage-by-stage timing when timestamps exist.
+An independent MIT-licensed project by [Positano777](https://github.com/Positano777), built alongside [Memecoin LaunchOps](https://github.com/Positano777/memecoin-launchops). The current release is a **read-only collector, replay and simulation prototype**, not a live trading bot. It records confirmed Pump creation candidates, classifies separately supplied complete launch signals as `BUY`, `SKIP`, or `ABSTAIN`, calculates hypothetical results after supplied costs, and reports stage-by-stage timing when timestamps exist.
 
 | Available now | Still required for live trading |
 |---|---|
-| Deterministic, inspectable policy and reason codes | Authorized live Solana launch feed and point-in-time evidence collector |
+| Bounded, read-only Pump creation collector | Complete point-in-time launch evidence collector with gap recovery |
+| Deterministic, inspectable policy and reason codes | Verified creator, holder, liquidity and quote evidence for those candidates |
 | Replay accuracy and abstention metrics | Large real chronological cohort with independently checked labels |
 | Paper portfolio with fees, slippage, cash, position, spend and loss caps | Verified price/fee data, actual fills and realistic execution study |
 | Path simulation of entry delay, exits and failed entry | Real tick coverage and calibrated failure/landing assumptions |
@@ -15,6 +16,8 @@ An independent MIT-licensed project by [Positano777](https://github.com/Positano
 | Latency report for supplied event timestamps | Comparable Photon observations; documented Photon API if integration is offered |
 
 **No real trading, profit, accuracy, or Photon-speed claim is made.** The included three-case dataset and its prices are invented. The thresholds are illustrative. Do not fund the example addresses.
+
+The creation collector uses an authorized RPC provider and emits **candidates, not trade signals**. See its [setup and coverage limits](docs/COLLECTOR.md). A [short public-mainnet smoke test](docs/COLLECTOR-SMOKE.md) found one confirmed creation; completeness and speed have not been benchmarked.
 
 ## Run offline
 
@@ -53,9 +56,10 @@ The adapter sends the public signal to the chosen provider. Never include secret
 
 ```mermaid
 flowchart LR
-  F[Authorized Solana event feed] --> E[Validated launch evidence]
-  R[RugHawk-family export, time checked] --> E
-  E --> C[Versioned deterministic policy]
+  F[Read-only Solana creation collector] --> E[Creation candidates]
+  E --> V[Future complete point-in-time evidence]
+  R[RugHawk-family export, time checked] --> V
+  V --> C[Versioned deterministic policy]
   C --> P[Replay, paper portfolio, path simulation, latency report]
   E --> A[Grok or Muse research: optional]
   A --> R[Feature proposals for offline testing]

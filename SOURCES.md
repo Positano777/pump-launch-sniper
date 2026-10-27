@@ -8,7 +8,8 @@ Reviewed on 2026-10-26. This repository does **not** execute cloned bots or incl
 | [bobvasic/rughawk](https://github.com/bobvasic/rughawk), MIT | Original launch-block analysis behind our fork | Attribution for the evidence model. Same-slot deltas are not called verified bundles. |
 | [nirholas/solana-sniper-mcp](https://github.com/nirholas/solana-sniper-mcp), Apache-2.0 at review | Pluggable feed/store/executor design; simulation mode, stop loss, take profit, trailing exit, time limit, daily budget | Original path simulator and paper risk caps inspired by those patterns. No package, wallet adapter or source files imported. Its `snipe_now` bypasses scoring; this project does not offer that bypass. |
 | [Kelows/million](https://github.com/Kelows/million), MIT at review | Self-hosted wallet tracking and paper-first copy trading | Product comparison only. Its Helius feed and runtime were not installed or executed. |
-| [pump-fun/pump-public-docs](https://github.com/pump-fun/pump-public-docs) | Official current Pump instruction and SDK documentation | Reference for future trade builder. No live executor has been implemented. |
+| [pump-fun/pump-public-docs](https://github.com/pump-fun/pump-public-docs) | Official current Pump program ID, creation discriminators, instruction accounts and trade documentation | `src/pump-tx.mjs` validates confirmed top-level creation instructions against the IDL. Reference for a future trade builder; no live executor. |
+| [Solana RPC documentation](https://solana.com/docs/rpc/websocket/logssubscribe) | Official `logsSubscribe` and `getTransaction` request/response contracts | Read-only, bounded WebSocket collector and HTTP client. |
 | [nirholas/pumpkit](https://github.com/nirholas/pumpkit) and related repos | Product references; current license review found reuse restrictions | No fork or code reuse. |
 
 ## Limits of the evidence integration
