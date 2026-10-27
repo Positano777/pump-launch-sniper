@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto';
 
-export const POLICY_VERSION = '0.2.0';
+export const POLICY_VERSION = '0.3.0';
 const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 export const DEFAULT_POLICY = Object.freeze({
   maxAgeMs: 15_000,
   maxCreatorPriorLaunches: 20,
   maxCreatorPriorRugs: 2,
   maxTopTenPct: 45,
-  maxBundlePct: 25,
+  maxLaunchSlotDeltaPct: 25,
   minLiquiditySol: 2,
   maxSpendSol: 0.05,
   maxSlippageBps: 300,
@@ -42,7 +42,7 @@ export function validatePolicy(raw) {
     maxCreatorPriorLaunches: finite(raw.maxCreatorPriorLaunches, 'maxCreatorPriorLaunches', 0, 1_000_000),
     maxCreatorPriorRugs: finite(raw.maxCreatorPriorRugs, 'maxCreatorPriorRugs', 0, 1_000_000),
     maxTopTenPct: finite(raw.maxTopTenPct, 'maxTopTenPct', 0, 100),
-    maxBundlePct: finite(raw.maxBundlePct, 'maxBundlePct', 0, 100),
+    maxLaunchSlotDeltaPct: finite(raw.maxLaunchSlotDeltaPct, 'maxLaunchSlotDeltaPct', 0, 1_000_000),
     minLiquiditySol: finite(raw.minLiquiditySol, 'minLiquiditySol', 0, 1_000_000_000),
     maxSpendSol: finite(raw.maxSpendSol, 'maxSpendSol', Number.MIN_VALUE, 100),
     maxSlippageBps: finite(raw.maxSlippageBps, 'maxSlippageBps', 0, 10_000),
@@ -67,7 +67,9 @@ export function validateSignal(raw) {
     creatorPriorLaunches: finite(raw.creatorPriorLaunches, 'creatorPriorLaunches', 0, 1_000_000),
     creatorPriorRugs: finite(raw.creatorPriorRugs, 'creatorPriorRugs', 0, 1_000_000),
     topTenPct: finite(raw.topTenPct, 'topTenPct', 0, 100),
-    bundlePct: finite(raw.bundlePct, 'bundlePct', 0, 100),
+    launchSlotCoverageComplete: raw.launchSlotCoverageComplete === true,
+    launchSlotDeltaPct: raw.launchSlotCoverageComplete === true
+      ? finite(raw.launchSlotDeltaPct, 'launchSlotDeltaPct', 0, 1_000_000) : null,
     liquiditySol: finite(raw.liquiditySol, 'liquiditySol', 0, 1_000_000_000),
   };
   if (signal.observedAtMs < signal.launchAtMs) throw new TypeError('observation precedes launch');
@@ -86,11 +88,12 @@ export function decide(rawSignal, policy = DEFAULT_POLICY) {
   if (!signal.quoteSupported) abstain('QUOTE_UNSUPPORTED');
   if (!signal.evidenceComplete) abstain('EVIDENCE_INCOMPLETE');
   if (!signal.creatorHistoryComplete) abstain('CREATOR_HISTORY_INCOMPLETE');
+  if (!signal.launchSlotCoverageComplete) abstain('LAUNCH_SLOT_INCOMPLETE');
   if (signal.observedAtMs - signal.launchAtMs > policy.maxAgeMs) skip('TOO_OLD');
   if (signal.creatorPriorLaunches > policy.maxCreatorPriorLaunches) skip('CREATOR_LAUNCH_COUNT');
   if (signal.creatorPriorRugs > policy.maxCreatorPriorRugs) skip('CREATOR_RUG_COUNT');
   if (signal.topTenPct > policy.maxTopTenPct) skip('TOP_TEN_CONCENTRATION');
-  if (signal.bundlePct > policy.maxBundlePct) skip('LAUNCH_BUNDLE_CONCENTRATION');
+  if (signal.launchSlotDeltaPct !== null && signal.launchSlotDeltaPct > policy.maxLaunchSlotDeltaPct) skip('LAUNCH_SLOT_ACTIVITY_HIGH');
   if (signal.liquiditySol < policy.minLiquiditySol) skip('LIQUIDITY_TOO_LOW');
   const fingerprint = createHash('sha256').update(JSON.stringify({ signal, policy, version: POLICY_VERSION })).digest('hex');
   return { mint: signal.mint, slot: signal.slot, verdict, reasons, policyVersion: POLICY_VERSION, fingerprint,

@@ -16,7 +16,8 @@ Each line is one JSON object for one **unique launch mint**. Sort rows by `signa
     "creatorPriorLaunches": 1,
     "creatorPriorRugs": 0,
     "topTenPct": 20,
-    "bundlePct": 3,
+    "launchSlotCoverageComplete": true,
+    "launchSlotDeltaPct": 3,
     "liquiditySol": 5
   },
   "outcome": {
@@ -44,13 +45,17 @@ Each line is one JSON object for one **unique launch mint**. Sort rows by `signa
 }
 ```
 
-The example above is a **format illustration**, not a real mint or measurement. `signal` must contain only facts observed before `observedAtMs`. Missing critical coverage should set `evidenceComplete` or `creatorHistoryComplete` false and lead to `ABSTAIN`; do not fill unknown holder or bundle values with zero while marking coverage complete. The policy thresholds are illustrative and not empirically calibrated. Record the evidence source and observation slot in any real dataset; redact provider credentials.
+The example above is a **format illustration**, not a real mint or measurement. `signal` must contain only facts observed before `observedAtMs`. Missing critical coverage should set `evidenceComplete`, `creatorHistoryComplete` or `launchSlotCoverageComplete` false and lead to `ABSTAIN`. When launch-slot coverage is incomplete, set `launchSlotDeltaPct` to `null`. This field is the **sum of observed positive token deltas divided by supply**; transfers and repeated circulation can make it exceed 100%. It is neither distinct holdings nor verified buys, coordination or Jito bundle membership. The policy thresholds are illustrative and not empirically calibrated. Record the evidence source and observation slot in any real dataset; redact provider credentials.
 
 `favorableAt30m` means the hypothetical 30-minute exit would have **positive net SOL PnL after both trading fees, slippage, and fixed transaction costs**, under a documented entry rule. Its exact source and cost assumptions must accompany a research dataset. The reporter enforces the label-definition string but cannot verify the truth of the label. A future dataset should label all observed launches, including failed, illiquid and inactive ones, then hold out a later time period for evaluation.
 
 `paperQuote` is optional, but every `BUY` needs it for a complete paper PnL report. Entry quote time must be no later than decision time, and by default no more than one second stale. Exit quote time must equal decision time plus 30 minutes. The simulator subtracts the declared fixed cost once, spends at most the policy's `maxSpendSol`, and applies supplied fees and slippage on both sides. It settles positions at their exit times and enforces cash and a three-position default. It does not model partial fills, liquidity impact, priority auction, failed transactions, or actual confirmation timing.
 
 `timing` is optional. Its timestamps must be ordered. The latency report gives p50, p95 and p99 of each observed stage and counts samples per stage. No timestamp is independently verified. The included synthetic dataset deliberately has **no timing**, so its latency report is empty rather than a false speed claim.
+
+`outcome.pricePath` is an optional array of `{ "atMs": 1001200, "priceSol": 0.000001 }` ticks ordered by strictly increasing millisecond timestamps. `simulate` uses the first tick after the selected decision delay for a hypothetical entry, then checks net returns after supplied costs for stop loss, take profit, trailing stop, and timeout. The default scenarios are **illustrative assumptions**, not measured fee or landing estimates. An incomplete path, unavailable entry, or large exit gap has `netPnlSol: null`. The path simulator evaluates each candidate independently; the `paper` command handles cash and overlapping positions. Neither command reproduces actual market impact or partial fills.
+
+The `enrich` command accepts one JSONL row and one `positano.launch-evidence.v1` JSON file. It checks mint, creation slot, scan time, block coverage and observation type before adding `launchSlotDeltaPct`. An export scanned after the decision time is rejected as lookahead. The adapter does not verify the export against the chain and does not infer a Jito bundle. See [source review](../SOURCES.md).
 
 ## Metrics
 

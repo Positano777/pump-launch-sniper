@@ -1,0 +1,137 @@
+{
+  "schema": "positano.sniper-path-sim.v1",
+  "scenarios": [
+    {
+      "name": "illustrative-base",
+      "results": [
+        {
+          "mint": "2HfZPEuc9b8ujLaJ3HEXFPhSCQQvmQBB92W5HegvTNey",
+          "scenario": "illustrative-base",
+          "verdict": "BUY",
+          "status": "CLOSED",
+          "exitReason": "TAKE_PROFIT",
+          "entryAtMs": 11000,
+          "exitAtMs": 30000,
+          "spendSol": 0.05,
+          "tokens": 49253.73134328359,
+          "entryPriceSol": 0.000001,
+          "exitPriceSol": 0.0000017,
+          "netPnlSol": 0.03247455970149255,
+          "returnPct": 64.9491194029851
+        },
+        {
+          "mint": "2C1z4xhm5FSwpkBK6Zyh6e6ZsYHDQMtv8Qhc4Y3hMdgZ",
+          "scenario": "illustrative-base",
+          "verdict": "SKIP",
+          "status": "SKIP",
+          "reasons": [
+            "TOP_TEN_CONCENTRATION",
+            "LAUNCH_SLOT_ACTIVITY_HIGH"
+          ],
+          "netPnlSol": null
+        },
+        {
+          "mint": "8YvaJHq17FCd4YhuEbY2a2BdewhMfy6BTEGL8iiVeqT1",
+          "scenario": "illustrative-base",
+          "verdict": "ABSTAIN",
+          "status": "ABSTAIN",
+          "reasons": [
+            "EVIDENCE_INCOMPLETE"
+          ],
+          "netPnlSol": null
+        }
+      ],
+      "measuredResults": 1,
+      "knownNetPnlSol": 0.03247455970149255,
+      "unresolved": 0
+    },
+    {
+      "name": "illustrative-stress",
+      "results": [
+        {
+          "mint": "2HfZPEuc9b8ujLaJ3HEXFPhSCQQvmQBB92W5HegvTNey",
+          "scenario": "illustrative-stress",
+          "verdict": "BUY",
+          "status": "CLOSED",
+          "exitReason": "TRAILING_STOP",
+          "entryAtMs": 20000,
+          "exitAtMs": 40000,
+          "spendSol": 0.05,
+          "tokens": 43689.320388349515,
+          "entryPriceSol": 0.0000011,
+          "exitPriceSol": 9e-7,
+          "netPnlSol": -0.012260631067961172,
+          "returnPct": -24.521262135922345
+        },
+        {
+          "mint": "2C1z4xhm5FSwpkBK6Zyh6e6ZsYHDQMtv8Qhc4Y3hMdgZ",
+          "scenario": "illustrative-stress",
+          "verdict": "SKIP",
+          "status": "SKIP",
+          "reasons": [
+            "TOP_TEN_CONCENTRATION",
+            "LAUNCH_SLOT_ACTIVITY_HIGH"
+          ],
+          "netPnlSol": null
+        },
+        {
+          "mint": "8YvaJHq17FCd4YhuEbY2a2BdewhMfy6BTEGL8iiVeqT1",
+          "scenario": "illustrative-stress",
+          "verdict": "ABSTAIN",
+          "status": "ABSTAIN",
+          "reasons": [
+            "EVIDENCE_INCOMPLETE"
+          ],
+          "netPnlSol": null
+        }
+      ],
+      "measuredResults": 1,
+      "knownNetPnlSol": -0.012260631067961172,
+      "unresolved": 0
+    },
+    {
+      "name": "illustrative-failed-entry",
+      "results": [
+        {
+          "mint": "2HfZPEuc9b8ujLaJ3HEXFPhSCQQvmQBB92W5HegvTNey",
+          "scenario": "illustrative-failed-entry",
+          "verdict": "BUY",
+          "status": "FAILED_ENTRY",
+          "netPnlSol": -0.000005,
+          "costs": {
+            "fixedCostsSol": 0.000005
+          }
+        },
+        {
+          "mint": "2C1z4xhm5FSwpkBK6Zyh6e6ZsYHDQMtv8Qhc4Y3hMdgZ",
+          "scenario": "illustrative-failed-entry",
+          "verdict": "SKIP",
+          "status": "SKIP",
+          "reasons": [
+            "TOP_TEN_CONCENTRATION",
+            "LAUNCH_SLOT_ACTIVITY_HIGH"
+          ],
+          "netPnlSol": null
+        },
+        {
+          "mint": "8YvaJHq17FCd4YhuEbY2a2BdewhMfy6BTEGL8iiVeqT1",
+          "scenario": "illustrative-failed-entry",
+          "verdict": "ABSTAIN",
+          "status": "ABSTAIN",
+          "reasons": [
+            "EVIDENCE_INCOMPLETE"
+          ],
+          "netPnlSol": null
+        }
+      ],
+      "measuredResults": 1,
+      "knownNetPnlSol": -0.000005,
+      "unresolved": 0
+    }
+  ],
+  "caveats": [
+    "Paths and costs are supplied, not fetched or verified. Synthetic defaults do not predict live fills.",
+    "Each candidate is simulated independently; cash and overlapping positions are not modeled here.",
+    "Ticks can miss between-tick extremes. Unknown or incomplete paths have no fabricated PnL."
+  ]
+}

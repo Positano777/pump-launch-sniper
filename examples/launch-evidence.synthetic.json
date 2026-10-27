@@ -1,0 +1,29 @@
+{
+  "schema": "positano.launch-evidence.v1",
+  "mint": "2HfZPEuc9b8ujLaJ3HEXFPhSCQQvmQBB92W5HegvTNey",
+  "scannedAt": 11000,
+  "sourceEngine": "synthetic RugHawk-style export",
+  "syntheticExample": true,
+  "coverage": {
+    "creation": "located",
+    "launchBlock": "complete",
+    "launchBlockDetails": {
+      "slot": 100,
+      "source": "getBlock",
+      "relevantTransactions": 1,
+      "inspectedTransactions": 1,
+      "reasons": []
+    },
+    "warnings": []
+  },
+  "creation": {
+    "slot": 100,
+    "source": { "signature": "synthetic-signature" }
+  },
+  "launchSlotObservations": {
+    "summedPositiveDeltasPctOfSupply": 4,
+    "purchasesVerified": false,
+    "coordination": "unverified",
+    "jitoBundleMembership": "unverified"
+  }
+}

@@ -5,6 +5,8 @@ import { decide, DEFAULT_POLICY } from '../src/policy.mjs';
 import { replay } from '../src/replay.mjs';
 import { paperReplay } from '../src/paper.mjs';
 import { latencyReport } from '../src/latency.mjs';
+import { attachLaunchEvidence } from '../src/evidence.mjs';
+import { simulatePath, simulateScenarios, DEFAULT_SCENARIOS } from '../src/path-sim.mjs';
 import { analyzeWithModel } from '../src/models.mjs';
 
 const rows = (await readFile(new URL('../examples/launches.synthetic.jsonl', import.meta.url), 'utf8'))
@@ -93,6 +95,22 @@ test('paper bankroll and entry slippage caps block hypothetical entry', () => {
   assert.equal(paperReplay([stale]).skipped[0].reason, 'ENTRY_QUOTE_STALE');
 });
 
+test('paper session stops new entries after realized loss or spend cap', () => {
+  const first = structuredClone(rows[0]);
+  first.outcome.paperQuote.exitPriceSolAt30m = 0.0000001;
+  const second = structuredClone(rows[0]);
+  second.signal.mint = rows[1].signal.mint;
+  second.signal.slot = 101;
+  second.signal.observedAtMs = 1_812_000;
+  second.signal.launchAtMs = 1_811_000;
+  second.outcome.paperQuote.entryQuoteAtMs = 1_812_000;
+  second.outcome.paperQuote.exitQuoteAtMs = 3_612_000;
+  const lossRun = paperReplay([first, second], { maxSessionLossSol: 0.01 });
+  assert.equal(lossRun.skipped[0].reason, 'SESSION_LOSS_LIMIT');
+  const spendRun = paperReplay([rows[0], second], { maxTotalSpendSol: 0.05 });
+  assert.equal(spendRun.skipped[0].reason, 'TOTAL_SPEND_LIMIT');
+});
+
 test('latency report separates event, decision, submission and confirmation', () => {
   const report = latencyReport([{ timing: { eventAvailableAtMs: 1000, ingestedAtMs: 1010,
     decisionAtMs: 1012, submittedAtMs: 1020, confirmedAtMs: 1420 } }]);
@@ -104,4 +122,59 @@ test('latency report separates event, decision, submission and confirmation', ()
   assert.equal(report.stagesMs.eventToConfirmation.p50, 420);
   assert.throws(() => latencyReport([{ timing: { eventAvailableAtMs: 1000, ingestedAtMs: 999 } }]), /out of order/);
   assert.equal(latencyReport(rows).complete, 0);
+});
+
+test('RugHawk evidence adapter imports only complete point-in-time slot deltas', () => {
+  const base = structuredClone(rows[0]);
+  base.signal.launchSlotCoverageComplete = false;
+  base.signal.launchSlotDeltaPct = null;
+  const evidence = { schema: 'positano.launch-evidence.v1', mint: base.signal.mint, scannedAt: 11000,
+    sourceEngine: 'RugHawk community fork', creation: { slot: 100, source: { signature: 'synthetic' } },
+    coverage: { launchBlock: 'complete', launchBlockDetails: { slot: 100, source: 'getBlock',
+      relevantTransactions: 1, inspectedTransactions: 1, reasons: [] } },
+    launchSlotObservations: { summedPositiveDeltasPctOfSupply: 4, purchasesVerified: false,
+      jitoBundleMembership: 'unverified' } };
+  const enriched = attachLaunchEvidence(base, evidence);
+  assert.equal(enriched.signal.launchSlotCoverageComplete, true);
+  assert.equal(enriched.signal.launchSlotDeltaPct, 4);
+  assert.equal(decide(enriched.signal).verdict, 'BUY');
+  assert.equal(decide(base.signal).verdict, 'ABSTAIN');
+  assert.throws(() => attachLaunchEvidence(base, { ...evidence, scannedAt: 11001 }), /after the decision/);
+  const partial = structuredClone(evidence);
+  partial.coverage.launchBlock = 'incomplete';
+  partial.coverage.launchBlockDetails.reasons = ['sample_limit'];
+  assert.equal(attachLaunchEvidence(base, partial).signal.launchSlotDeltaPct, null);
+});
+
+test('path simulation exposes adverse latency, failed entry and no fake exits', () => {
+  const report = simulateScenarios(rows);
+  const [base, stress, failed] = report.scenarios;
+  assert.equal(base.results[0].status, 'CLOSED');
+  assert.equal(base.results[0].exitReason, 'TAKE_PROFIT');
+  assert.ok(base.results[0].netPnlSol > 0);
+  assert.equal(stress.results[0].status, 'CLOSED');
+  assert.ok(stress.results[0].netPnlSol < 0);
+  assert.equal(failed.results[0].status, 'FAILED_ENTRY');
+  assert.equal(failed.results[0].netPnlSol, -DEFAULT_SCENARIOS[2].fixedCostsSol);
+  const truncated = structuredClone(rows[0]);
+  truncated.outcome.pricePath = truncated.outcome.pricePath.slice(0, 1);
+  assert.equal(simulatePath(truncated).status, 'UNRESOLVED');
+  assert.equal(simulatePath(truncated).netPnlSol, null);
+});
+
+test('path simulation rejects reversed ticks and future evidence cannot change policy', () => {
+  const reversed = structuredClone(rows[0]);
+  reversed.outcome.pricePath[1].atMs = reversed.outcome.pricePath[0].atMs;
+  assert.throws(() => simulatePath(reversed), /timestamps must increase/);
+  const badCoverage = structuredClone(rows[0]);
+  badCoverage.signal.launchSlotCoverageComplete = false;
+  badCoverage.signal.launchSlotDeltaPct = null;
+  assert.equal(simulatePath(badCoverage).status, 'ABSTAIN');
+  const duplicated = simulateScenarios([rows[0], rows[0]]);
+  assert.equal(duplicated.scenarios[0].results[1].status, 'DUPLICATE_MINT');
+  assert.equal(duplicated.scenarios[0].measuredResults, 1);
+  const gap = structuredClone(rows[0]);
+  gap.outcome.pricePath = [{ atMs: 11000, priceSol: 0.000001 }, { atMs: 2_000_000, priceSol: 0.000001 }];
+  assert.equal(simulatePath(gap).status, 'EXIT_QUOTE_GAP');
+  assert.equal(simulatePath(gap).netPnlSol, null);
 });
