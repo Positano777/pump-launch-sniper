@@ -1,0 +1,76 @@
+{
+  "schema": "positano.launch-slot-scan.v1",
+  "mint": "48dnQpC1gE1ovAu3Bh7KSxeKhf4daBhLXs2bmgPspump",
+  "creationSignature": "5kisRUpxcdTRLpU1r77PXvNTxYcYxHxu4zpoADscbdhpz3cxnyFPhtgXuPo9D25MrmWMe4BhKcKbRFxw6keFCYau",
+  "slot": 461870008,
+  "scannedAtMs": 1793066982687,
+  "source": "Solana getBlock finalized accounts",
+  "interpretation": "Creation-transaction positive deltas are separate and can include reserve allocations; they do not establish mint supply. Later same-slot positive deltas can include transfers and repeated circulation. Neither proves buys, coordination or Jito bundles.",
+  "blockhash": "J9oA8tpwsQVdaXFKmqy92QtqV4n7XqJgjVwbEhHzgDb6",
+  "creationTransactionIndex": 158,
+  "creationPositiveDeltas": [
+    {
+      "accountIndex": 3,
+      "owner": "DPG2tD3bjU1iWmUySUbqnRXrxCbKyMHr6Fjh2PSBJ7Kt",
+      "positiveDeltaRaw": "960000000000000"
+    },
+    {
+      "accountIndex": 6,
+      "owner": "GK87eYi4ghyLA6CPWSJjP1CAMnhvk7JMAQ7BJLhWiowe",
+      "positiveDeltaRaw": "40000000000000"
+    }
+  ],
+  "creationPositiveRaw": "1000000000000000",
+  "coverage": {
+    "status": "complete",
+    "reasons": [],
+    "relevantTransactions": 5,
+    "inspectedTransactions": 5
+  },
+  "observations": [
+    {
+      "signature": "QtmSrTtayAsiLyHorc8qiq8HefruFwbcDah1gwk8vUg3AvhgkoDBNT5Da1guN6wsXWTkd72PZ7LoVKUDuqdTc8z",
+      "transactionIndex": 159,
+      "positiveDeltas": [
+        {
+          "accountIndex": 4,
+          "owner": "3gY7ZCyLEyEFX2d4XafQdK7ifAMR98JjKcvC9PMBJkjc",
+          "positiveDeltaRaw": "239999999999991"
+        }
+      ]
+    },
+    {
+      "signature": "3mghZ9pr6z3TZMq7EJpq75cGfQZSWGGuf78SzFHSawqUM7sNxGRBh7LvF6drUBPqrRgNrBk1K986Kbxg8jnRLxD2",
+      "transactionIndex": 203,
+      "positiveDeltas": [
+        {
+          "accountIndex": 2,
+          "owner": "dKMjeGJ4Mk9S3hxdfTThvZ7exks2xMwWqSM5NvN2CTK",
+          "positiveDeltaRaw": "101018905549572"
+        }
+      ]
+    },
+    {
+      "signature": "2w96T2fPmVU8TufkkyPWpUwNCkUQRjMDwPB6SznREfkUgDznsvKNMKnvVx6tLVxPPnYgQ6AH6FWccXmArDCM9mNz",
+      "transactionIndex": 204,
+      "positiveDeltas": [
+        {
+          "accountIndex": 3,
+          "owner": "8ki679dZgE8ozmGVKBzBbBqqby5CToRfqzAoKYx49aNX",
+          "positiveDeltaRaw": "1466058671732"
+        }
+      ]
+    },
+    {
+      "signature": "2vfB4mZA1r82Z8Ytmby87mzYxHBpnMi6xkAW5PaGJB5XGffuyzZ7FT43GaLgpqnePZUBTAjxgASnVnHtN7QKWNES",
+      "transactionIndex": 324,
+      "positiveDeltas": []
+    },
+    {
+      "signature": "Bzq9L8yXkGGY9xCXoCPtCXCoK4GrM3wEGAe4JJLjgEg2JPhJEBdRxTGZbNdw2jhgFhhWN33eU2t5At2BFMR3JkQ",
+      "transactionIndex": 325,
+      "positiveDeltas": []
+    }
+  ],
+  "summedPositiveRaw": "342484964221295"
+}

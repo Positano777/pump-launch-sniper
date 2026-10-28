@@ -1,5 +1,5 @@
 const MAINNET_GENESIS = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d';
-const ALLOWED = new Set(['getGenesisHash', 'getTransaction']);
+const ALLOWED = new Set(['getGenesisHash', 'getTransaction', 'getBlock']);
 
 export class ReadRpc {
   constructor(endpoint, fetcher = fetch) {
@@ -15,13 +15,15 @@ export class ReadRpc {
 
   async call(method, params = []) {
     if (!ALLOWED.has(method)) throw new TypeError('collector RPC is read-only');
+    const limit = method === 'getBlock' ? 20_000_000 : 2_000_000;
+    const timeout = method === 'getBlock' ? 30_000 : 10_000;
     try {
       const response = await this.fetcher(this.endpoint, {
-        method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10_000),
+        method: 'POST', redirect: 'error', signal: AbortSignal.timeout(timeout),
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
       });
-      if (!response.ok || Number(response.headers.get('content-length')) > 2_000_000) throw Error();
+      if (!response.ok || Number(response.headers.get('content-length')) > limit) throw Error();
       const reader = response.body.getReader();
       const chunks = [];
       let size = 0;
@@ -29,7 +31,7 @@ export class ReadRpc {
         const { value, done } = await reader.read();
         if (done) break;
         size += value.length;
-        if (size > 2_000_000) { await reader.cancel(); throw Error(); }
+        if (size > limit) { await reader.cancel(); throw Error(); }
         chunks.push(value);
       }
       const bytes = new Uint8Array(size);

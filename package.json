@@ -1,6 +1,6 @@
 {
   "name": "@positano777/pump-launch-sniper",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -11,6 +11,9 @@
     "paper": "node src/cli.mjs paper examples/launches.synthetic.jsonl",
     "latency": "node src/cli.mjs latency examples/launches.synthetic.jsonl",
     "simulate": "node src/cli.mjs simulate examples/launches.synthetic.jsonl",
-    "collect": "node src/collect.mjs"
+    "collect": "node src/collect.mjs",
+    "scan-slot": "node src/scan-slot.mjs",
+    "scan-batch": "node src/scan-batch.mjs",
+    "cohort-report": "node src/cohort-report.mjs"
   }
 }

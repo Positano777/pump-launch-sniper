@@ -1,0 +1,13 @@
+{
+  "schema": "positano.pump-creation-candidate.v1",
+  "signature": "5kisRUpxcdTRLpU1r77PXvNTxYcYxHxu4zpoADscbdhpz3cxnyFPhtgXuPo9D25MrmWMe4BhKcKbRFxw6keFCYau",
+  "mint": "48dnQpC1gE1ovAu3Bh7KSxeKhf4daBhLXs2bmgPspump",
+  "creationUser": "GK87eYi4ghyLA6CPWSJjP1CAMnhvk7JMAQ7BJLhWiowe",
+  "slot": 461870008,
+  "instruction": "create_v2",
+  "blockTimeMs": 1793061475000,
+  "observedAtMs": 1793061479036,
+  "source": "Solana getTransaction jsonParsed confirmed",
+  "coverage": "one confirmed transaction; no launch-slot, holder, creator-history or price coverage",
+  "tradingSignal": false
+}

@@ -2,11 +2,12 @@
 
 **Can a launch bot be fast, explain every decision, and publish the evidence behind its performance?** This is our open-source attempt to answer that question.
 
-An independent MIT-licensed project by [Positano777](https://github.com/Positano777), built alongside [Memecoin LaunchOps](https://github.com/Positano777/memecoin-launchops). The current release is a **read-only collector, replay and simulation prototype**, not a live trading bot. It records confirmed Pump creation candidates, classifies separately supplied complete launch signals as `BUY`, `SKIP`, or `ABSTAIN`, calculates hypothetical results after supplied costs, and reports stage-by-stage timing when timestamps exist.
+An independent MIT-licensed project by [Positano777](https://github.com/Positano777), built alongside [Memecoin LaunchOps](https://github.com/Positano777/memecoin-launchops). The current release is a **read-only collector, replay and simulation prototype**, not a live trading bot. It records confirmed Pump creation candidates, scans finalized launch-slot token-account changes, classifies separately supplied complete launch signals as `BUY`, `SKIP`, or `ABSTAIN`, calculates hypothetical results after supplied costs, and reports stage-by-stage timing when timestamps exist.
 
 | Available now | Still required for live trading |
 |---|---|
-| Bounded, read-only Pump creation collector | Complete point-in-time launch evidence collector with gap recovery |
+| Bounded, read-only Pump creation collector and finalized launch-slot scanner | Complete point-in-time launch evidence collector with gap recovery |
+| Five-candidate real research sample with reproducible coverage report | Large chronological cohort with prices and independently checked outcomes |
 | Deterministic, inspectable policy and reason codes | Verified creator, holder, liquidity and quote evidence for those candidates |
 | Replay accuracy and abstention metrics | Large real chronological cohort with independently checked labels |
 | Paper portfolio with fees, slippage, cash, position, spend and loss caps | Verified price/fee data, actual fills and realistic execution study |
@@ -17,7 +18,7 @@ An independent MIT-licensed project by [Positano777](https://github.com/Positano
 
 **No real trading, profit, accuracy, or Photon-speed claim is made.** The included three-case dataset and its prices are invented. The thresholds are illustrative. Do not fund the example addresses.
 
-The creation collector uses an authorized RPC provider and emits **candidates, not trade signals**. See its [setup and coverage limits](docs/COLLECTOR.md). A [short public-mainnet smoke test](docs/COLLECTOR-SMOKE.md) found one confirmed creation; completeness and speed have not been benchmarked.
+The creation collector uses an authorized RPC provider and emits **candidates, not trade signals**. See its [setup and coverage limits](docs/COLLECTOR.md). A [five-creation public-mainnet research sample](docs/COHORT-5.md) includes finalized slot scans and explicit limits. Completeness, trading performance and Photon speed have not been benchmarked.
 
 ## Run offline
 

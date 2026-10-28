@@ -2,6 +2,8 @@
 
 Each line is one JSON object for one **unique launch mint**. Sort rows by `signal.observedAtMs` for paper replay. Duplicate mints are counted once by replay and skipped by paper replay. This is a contract for imported evidence; the project does not currently collect these fields from Solana.
 
+The [five-candidate mainnet sample](COHORT-5.md) is a different, earlier data stage: it has confirmed creation transactions and finalized slot observations, but lacks the point-in-time holder, creator, liquidity and price fields required here. Do not fill those missing values with zeros or treat that sample as a backtest.
+
 ```json
 {
   "signal": {

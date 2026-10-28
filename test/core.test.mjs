@@ -10,6 +10,8 @@ import { simulatePath, simulateScenarios, DEFAULT_SCENARIOS } from '../src/path-
 import { decodePumpCreation, PUMP_PROGRAM } from '../src/pump-tx.mjs';
 import { collectPumpCreations, validateWsUrl } from '../src/collector.mjs';
 import { ReadRpc } from '../src/rpc-client.mjs';
+import { scanLaunchSlot } from '../src/launch-slot.mjs';
+import { cohortReport } from '../src/cohort.mjs';
 import { analyzeWithModel } from '../src/models.mjs';
 
 const rows = (await readFile(new URL('../examples/launches.synthetic.jsonl', import.meta.url), 'utf8'))
@@ -244,4 +246,55 @@ test('read RPC accepts only a valid mainnet genesis response', async () => {
   const wrong = new ReadRpc('https://example.invalid', async () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 1,
     result: 'wrong-chain' }), { status: 200 }));
   await assert.rejects(wrong.verifyMainnet(), /not Solana mainnet/);
+});
+
+test('finalized launch-slot scan counts positive deltas while exposing coverage', async () => {
+  const candidate = { schema: 'positano.pump-creation-candidate.v1', mint: rows[0].signal.mint,
+    signature: 'creation-sig', slot: 100 };
+  const balance = (accountIndex, raw, owner) => ({ accountIndex, mint: candidate.mint,
+    owner, uiTokenAmount: { amount: String(raw), decimals: 6 } });
+  const tx = (signature, pre, post) => ({ transaction: { signatures: [signature], accountKeys: [] },
+    meta: { err: null, preTokenBalances: pre, postTokenBalances: post } });
+  const block = { blockhash: 'synthetic-block', transactions: [
+    tx('creation-sig', [], [balance(0, 1000, 'curve')]),
+    tx('buyer-sig', [balance(1, 0, 'buyer')], [balance(1, 100, 'buyer')]),
+    tx('transfer-sig', [balance(1, 100, 'buyer'), balance(2, 0, 'friend')],
+      [balance(1, 50, 'buyer'), balance(2, 50, 'friend')]),
+  ] };
+  const methods = [];
+  const rpc = { verifyMainnet: async () => {}, call: async (method, params) => {
+    methods.push(method);
+    assert.equal(params[1].commitment, 'finalized');
+    return block;
+  } };
+  const result = await scanLaunchSlot(rpc, candidate, { now: () => 12000 });
+  assert.equal(result.coverage.status, 'complete');
+  assert.equal(result.creationPositiveRaw, '1000');
+  assert.equal(result.summedPositiveRaw, '150');
+  assert.equal(result.observations.length, 2);
+  assert.deepEqual(methods, ['getBlock']);
+  const limited = await scanLaunchSlot(rpc, candidate, { limit: 1 });
+  assert.equal(limited.coverage.status, 'incomplete');
+  assert.equal(limited.summedPositiveRaw, null);
+  assert.ok(limited.coverage.reasons.includes('sample_limit'));
+  const missingCreation = { verifyMainnet: async () => {}, call: async () => ({ ...block, transactions: block.transactions.slice(1) }) };
+  const missing = await scanLaunchSlot(missingCreation, candidate);
+  assert.equal(missing.coverage.status, 'incomplete');
+  assert.equal(missing.summedPositiveRaw, null);
+  assert.ok(missing.coverage.reasons.includes('creation_missing_from_block'));
+});
+
+test('cohort report reconciles scans and refuses false complete coverage', () => {
+  const candidate = { schema: 'positano.pump-creation-candidate.v1', mint: rows[0].signal.mint,
+    signature: 'creation-sig', slot: 100, observedAtMs: 11000 };
+  const scan = { schema: 'positano.launch-slot-scan.v1', mint: candidate.mint,
+    creationSignature: candidate.signature, slot: 100, scannedAtMs: 12000,
+    coverage: { status: 'complete', relevantTransactions: 0, inspectedTransactions: 0, reasons: [] },
+    creationPositiveRaw: '1000', summedPositiveRaw: '0' };
+  const report = cohortReport([candidate], [scan]);
+  assert.equal(report.counts.complete, 1);
+  assert.equal(report.counts.noLaterMintTransactionsObserved, 1);
+  assert.match(report.tradingReadiness, /insufficient/);
+  assert.throws(() => cohortReport([candidate], [{ ...scan, slot: 101 }]), /does not match/);
+  assert.throws(() => cohortReport([candidate], [{ ...scan, coverage: { ...scan.coverage, inspectedTransactions: 1 } }]), /inconsistent coverage/);
 });

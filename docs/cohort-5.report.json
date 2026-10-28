@@ -1,0 +1,77 @@
+{
+  "schema": "positano.pump-cohort-report.v1",
+  "counts": {
+    "candidates": 5,
+    "scans": 5,
+    "complete": 5,
+    "incomplete": 0,
+    "unavailable": 0,
+    "missing": 0,
+    "withLaterMintTransactions": 1,
+    "noLaterMintTransactionsObserved": 4
+  },
+  "rows": [
+    {
+      "mint": "FwRpfeVuhW2TLF6fdAQfCSwE6wdS3g2WidPoz35Xpump",
+      "slot": 461895487,
+      "creationSignature": "gMTrFcFnDHjbwLjBsRyt9cgNJ2H2XgjuKU7BJGyaxqsN7ija7fVPWdy8no6qpeKvYTPq6EXGuY7X6qms2uEaKSW",
+      "candidateObservedAtMs": 1793066884959,
+      "scanObservedAtMs": 1793066975716,
+      "scanCoverage": "complete",
+      "laterMintTransactions": 13,
+      "creationPositiveRaw": "1000000000000000",
+      "laterPositiveRaw": "151211475138386"
+    },
+    {
+      "mint": "CZLWUKGfusZYUGrjyt1jkngamW56NHSDXGdDXpfd8oHS",
+      "slot": 461895492,
+      "creationSignature": "2hvp7vuAD6GSAt8a8rQb4MDWJFk6jDVE2GuScynsRnyTuB5mcd3q2z4WtJY6AsHW2caMRgkbqTAoS4r1fErnmrjQ",
+      "candidateObservedAtMs": 1793066888242,
+      "scanObservedAtMs": 1793066975846,
+      "scanCoverage": "complete",
+      "laterMintTransactions": 0,
+      "creationPositiveRaw": "1000000000000000",
+      "laterPositiveRaw": "0"
+    },
+    {
+      "mint": "HnazomtKtsKbNWirKZAddn2PoaCdebgdb5W4VEV2adxA",
+      "slot": 461895495,
+      "creationSignature": "5tmpbU7HyXVFjvAj5qdezbL63CzxioepxvcbDVyzR4qndThithCLmHkDdCZYUQeE6DZGgCyxd4TBiUN8iGD3Hc4D",
+      "candidateObservedAtMs": 1793066889516,
+      "scanObservedAtMs": 1793066976042,
+      "scanCoverage": "complete",
+      "laterMintTransactions": 0,
+      "creationPositiveRaw": "1000000000000000",
+      "laterPositiveRaw": "0"
+    },
+    {
+      "mint": "DwZSnjm3mf8HxxuJgMW8XKaFZvqNA9K5cU7aBaRrpump",
+      "slot": 461895524,
+      "creationSignature": "5E2QLaqiShYLMdXJvN77rkoD1wdwapTWTxSVKd6Ej36wWRYdgX5EvTKD8tq5qjS7YYMQyVYuXbC6xKyii4ZX5rBd",
+      "candidateObservedAtMs": 1793066906802,
+      "scanObservedAtMs": 1793066976145,
+      "scanCoverage": "complete",
+      "laterMintTransactions": 0,
+      "creationPositiveRaw": "2000000000000000",
+      "laterPositiveRaw": "0"
+    },
+    {
+      "mint": "27Df4WL8g3ZVJQrWT2QFmavoLKPk4BBjnpZRKcN6pump",
+      "slot": 461895536,
+      "creationSignature": "4gbSsTstZNMaKfjua1qbkGhBGMzJrYtgHHDTgiL8jMev3r9M2rjJKFsw4a8rGNeay16XoynxiwGMhXppJ4zoy22g",
+      "candidateObservedAtMs": 1793066910891,
+      "scanObservedAtMs": 1793066976301,
+      "scanCoverage": "complete",
+      "laterMintTransactions": 0,
+      "creationPositiveRaw": "2000000000000000",
+      "laterPositiveRaw": "0"
+    }
+  ],
+  "tradingReadiness": "insufficient: no complete point-in-time signal or validated price path",
+  "caveats": [
+    "A bounded, first-N collection window is a convenience sample, not a representative launch cohort.",
+    "A complete getBlock response is provider coverage only. Later scans cannot be used as launch-time knowledge.",
+    "Creation and later positive deltas can include reserves, transfers and repeated circulation; raw amounts across coins are not comparable.",
+    "No price, realized PnL, quote asset, holder safety, verified buy classification or Jito bundle membership is established."
+  ]
+}
